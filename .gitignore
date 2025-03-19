@@ -1,7 +1,11 @@
 #########################
 ##### Project Files
 #########################
-
+Makefile
+TASKS.md
+!**/static/*
+**/static/admin/
+**/static/staticfiles.json
 
 #########################
 ##### PyCharm+all
