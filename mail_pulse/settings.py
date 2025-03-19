@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from decouple import Csv, config
@@ -6,6 +7,7 @@ from django.core.management.utils import get_random_secret_key
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default=get_random_secret_key(), cast=str)
 DEBUG = config("DEBUG", default=False, cast=bool)
+print(f"----------> {DEBUG}")
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 DATABASES = {
@@ -26,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
@@ -85,14 +88,15 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = "static/"
-if DEBUG:
-    STATICFILES_DIRS = [BASE_DIR / "static/"]
-else:
-    STATIC_ROOT = BASE_DIR / "static/"
+STATIC_URL = "/static/"
 
-MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATICFILES_STORAGE = (
+    "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+)
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -103,3 +107,5 @@ EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", cast=str)
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", cast=str)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+AUTH_USER_MODEL = "users.User"
