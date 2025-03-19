@@ -1,0 +1,106 @@
+[project]
+name = "mail-pulse"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Shoxrux Yuldashov",email = "deagleshox@mail.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "django (==4.2)",
+    "python-decouple (>=3.8,<4.0)",
+    "django-bootstrap5 (>=25.1,<26.0)",
+    "django-apscheduler (>=0.7.0,<0.8.0)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.1.2"
+isort = "^6.0.1"
+black = "^25.1.0"
+mypy = "^1.15.0"
+flake8-pyproject = "^1.2.3"
+tqdm = "^4.67.1"
+djlint = "^1.36.4"
+
+
+[tool.poetry.group.tests.dependencies]
+pytest = "^8.3.5"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+pytest-django = "^4.10.0"
+faker = "^37.0.1"
+
+
+[tool.flake8]
+max-line-length = 79
+max-complexity = 6
+count = true
+per-file-ignores = [
+    "__init__.py:F401",
+    "**/settings.py:E501"
+]
+extend-ignore = [
+    "E203",
+    "E231",
+    "E241",
+    "W503",
+    "F811",
+    "R503",
+    "R504",
+    "R505"
+]
+exclude = [
+    ".git/",
+    "__pycache__/",
+    "**/migrations/",
+    "manage.py",
+    "settings.py",
+    "env/",
+    "venv/",
+    ".env/",
+    ".venv/",
+    "tests/",
+    ".pytest_cache",
+    ".vscode/",
+    ".idea/"
+]
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    migrations
+  | __pycache__
+  | .pytest_cache
+  | .vscode
+  | .idea
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 79
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+known_local_folder = [
+    "mail_pulse"
+]
+
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = ["untyped_package.*"]
+follow_untyped_imports = true
