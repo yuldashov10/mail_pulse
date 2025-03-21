@@ -5,6 +5,8 @@ from users.constants import COUNTRY_LEN, PHONE_NUMBER_LEN
 
 
 class User(AbstractUser):
+    """Кастомная модель пользователя с авторизацией по email."""
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
