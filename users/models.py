@@ -20,12 +20,18 @@ class User(AbstractUser):
         blank=True,
     )
     phone_number = models.CharField(
+        "Номер телефона",
         max_length=PHONE_NUMBER_LEN,
         blank=True,
     )
     country = models.CharField(
+        "Страна",
         max_length=COUNTRY_LEN,
         blank=True,
+    )
+    is_active = models.BooleanField(
+        "Активен",
+        default=False,
     )
 
     class Meta:
