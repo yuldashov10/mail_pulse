@@ -28,3 +28,8 @@
 python3 manage.py setup_managers_group
 ```
 
+- Отправка рассылки
+
+```bash
+python3 manage.py send_mailing <mailing_id>
+```
