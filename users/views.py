@@ -48,7 +48,7 @@ class RegisterView(CreateView):
             )
         )
         send_mail(
-            "Подтверждение регистрации в MailPulse",
+            "Подтверждение регистрации в Mail Pulse",
             f"Перейдите по ссылке для активации: {verification_url}",
             settings.EMAIL_HOST_USER,
             [user.email],
