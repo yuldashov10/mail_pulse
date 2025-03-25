@@ -32,5 +32,73 @@ recipients_urls = [
     ),
 ]
 
+messages_urls = [
+    path(
+        "",
+        views.MessageListView.as_view(),
+        name="message_list",
+    ),
+    path(
+        "create/",
+        views.MessageCreateView.as_view(),
+        name="message_create",
+    ),
+    path(
+        "<int:pk>/",
+        views.MessageDetailView.as_view(),
+        name="message_detail",
+    ),
+    path(
+        "<int:pk>/update/",
+        views.MessageUpdateView.as_view(),
+        name="message_update",
+    ),
+    path(
+        "<int:pk>/delete/",
+        views.MessageDeleteView.as_view(),
+        name="message_delete",
+    ),
+]
 
-urlpatterns = [path("recipients/", include(recipients_urls))]
+mailings_urls = [
+    path(
+        "",
+        views.MailingListView.as_view(),
+        name="mailing_list",
+    ),
+    path(
+        "create/",
+        views.MailingCreateView.as_view(),
+        name="mailing_create",
+    ),
+    path(
+        "<int:pk>/",
+        views.MailingDetailView.as_view(),
+        name="mailing_detail",
+    ),
+    path(
+        "<int:pk>/update/",
+        views.MailingUpdateView.as_view(),
+        name="mailing_update",
+    ),
+    path(
+        "<int:pk>/delete/",
+        views.MailingDeleteView.as_view(),
+        name="mailing_delete",
+    ),
+]
+
+attempts_urls = [
+    path(
+        "",
+        views.MailingAttemptListView.as_view(),
+        name="mailing_attempt_list",
+    ),
+]
+
+urlpatterns = [
+    path("recipients/", include(recipients_urls)),
+    path("messages/", include(messages_urls)),
+    path("mailings/", include(mailings_urls)),
+    path("attempts/", include(attempts_urls)),
+]

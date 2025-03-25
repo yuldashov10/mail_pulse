@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models
 
 from mailings.constants import (
@@ -143,8 +144,32 @@ class Mailing(models.Model):
             ("can_block_mailings", "Может отключать рассылки"),
         )
 
+    def send_mailing(self):
+        """Отправляет рассылки всем получателям."""
+        try:
+            send_mail(
+                self.message.subject,
+                self.message.body,
+                settings.EMAIL_HOST_USER,
+                [recipient.email for recipient in self.recipients.all()],
+                fail_silently=False,
+            )
+            MailingAttempt.objects.create(
+                mailing=self,
+                status=AttemptStatus.SUCCESS,
+                server_response="Сообщение успешно отправлено",
+            )
+            self.status = MailingStatus.COMPLETED
+            self.save()
+        except Exception as err_msg:
+            MailingAttempt.objects.create(
+                mailing=self,
+                status=AttemptStatus.FAILED,
+                server_response=str(err_msg),
+            )
+
     def __str__(self) -> str:
-        return f"{self.message.subject} ({self.status.name})"
+        return f"{self.message.subject} ({self.status})"
 
 
 class MailingAttempt(models.Model):

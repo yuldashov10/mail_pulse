@@ -1,5 +1,7 @@
 """Константы для приложения mailings."""
 
+from django.db.models import TextChoices
+
 EMAIL_LEN: int = 254
 LAST_NAME_LEN: int = 100
 FIRST_NAME_LEN: int = 100
@@ -7,7 +9,7 @@ PATRONYMIC_LEN: int = 100
 SUBJECT_LEN: int = 255
 STATUS_LEN: int = 20
 
-from django.db.models import TextChoices
+DEFAULT_PAGE_SIZE: int = 5
 
 
 class MailingStatus(TextChoices):
