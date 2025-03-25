@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+  <div class="text-center">
+    <h1>Mail Pulse</h1>
+    <img src="{% static 'images/main_image.svg' %}"
+         alt="Mail Pulse Illustration"
+         class="img-fluid my-4"
+         style="max-width: 500px">
+    {% if user.is_authenticated %}
+      <p>Всего рассылок: {{ stats.total_mailings }}</p>
+      <p>Активных рассылок: {{ stats.active_mailings }}</p>
+      <p>Уникальных получателей: {{ stats.unique_recipients }}</p>
+      <a href="{% url 'mailings:recipient_list' %}" class="btn btn-primary">К получателям</a>
+    {% else %}
+      <p>Добро пожаловать в Mail Pulse! Войдите, чтобы начать.</p>
+      <a href="{% url 'users:login' %}" class="btn btn-primary">Войти</a>
+      <a href="{% url 'users:register' %}" class="btn btn-secondary">Регистрация</a>
+    {% endif %}
+  </div>
+{% endblock %}

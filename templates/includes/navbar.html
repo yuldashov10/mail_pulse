@@ -1,0 +1,68 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <div class="d-flex align-items-center d-lg-flex d-none">
+      <a class="navbar-brand d-flex align-items-center"
+         href="{% url 'home' %}">
+        <img src="{% static 'logo.svg' %}"
+             alt="Mail Pulse Logo"
+             height="30"
+             class="me-2">
+        Mail Pulse
+      </a>
+    </div>
+    <div class="d-flex justify-content-center align-items-center d-lg-none">
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <img src="{% static 'logo.svg' %}"
+             alt="Mail Pulse Logo"
+             height="30"
+             class="me-2">
+        Mail Pulse
+      </a>
+    </div>
+    <button class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'mailings:recipient_list' %}">Получатели</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'mailings:message_list' %}">Сообщения</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'mailings:mailing_list' %}">Рассылки</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'mailings:mailing_attempt_list' %}">Попытки</a>
+          </li>
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:profile_detail' %}">Профиль</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:logout' %}">Выход</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:login' %}">Вход</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:register' %}">Регистрация</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
