@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from users.models import User
+from users.models import EmailVerificationToken, User
 
 
 @admin.register(User)
@@ -41,3 +41,21 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
     ordering = ("email",)
+
+
+@admin.register(EmailVerificationToken)
+class EmailVerificationTokenAdmin(admin.ModelAdmin):
+    """Админка для токенов подтверждения email."""
+
+    list_display = ("user", "token", "created_at", "expires_at", "is_valid")
+    list_filter = ("created_at", "expires_at")
+    search_fields = ("user__email", "token")
+    readonly_fields = ("token", "created_at", "expires_at")
+
+    def has_add_permission(self, request):
+        """Запрещает добавление токенов вручную."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Запрещает редактирование токенов."""
+        return False

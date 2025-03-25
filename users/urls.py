@@ -21,7 +21,7 @@ urlpatterns = [
         name="email_verification_sent",
     ),
     path(
-        "verify-email/<uidb64>/<token>/",
+        "verify-email/<uuid:token>/",
         views.VerifyEmailView.as_view(),
         name="verify_email",
     ),
@@ -33,8 +33,13 @@ urlpatterns = [
     ),
     path(
         "profile/",
-        views.ProfileView.as_view(),
-        name="profile",
+        views.ProfileDetailView.as_view(),
+        name="profile_detail",
+    ),
+    path(
+        "profile/edit/",
+        views.ProfileEditView.as_view(),
+        name="profile_edit",
     ),
     path(
         "password_reset/",

@@ -1,7 +1,9 @@
+from typing import Optional
+
 from django.conf import settings
 from django.contrib.auth import login
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.contrib.auth.views import (
     PasswordResetConfirmView as BasePasswordResetConfirmView,
@@ -10,13 +12,20 @@ from django.contrib.auth.views import (
     PasswordResetView as BasePasswordResetView,
 )
 from django.core.mail import send_mail
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.views.generic import CreateView, TemplateView, UpdateView
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    TemplateView,
+    UpdateView,
+)
 
-from .forms import RegistrationForm, UserChangeForm
-from .models import User
+from users.forms import RegistrationForm, UserChangeForm
+from users.models import EmailVerificationToken, User
 
 
 class RegisterView(CreateView):
@@ -26,17 +35,16 @@ class RegisterView(CreateView):
     template_name = "users/register.html"
     success_url = reverse_lazy("users:email_verification_sent")
 
-    def form_valid(self, form):
+    def form_valid(self, form) -> HttpResponseRedirect:
         user = form.save(commit=False)
         user.is_active = False
         user.save()
 
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = EmailVerificationToken.objects.create(user=user)
         verification_url = self.request.build_absolute_uri(
             reverse_lazy(
                 "users:verify_email",
-                kwargs={"uidb64": uid, "token": token},
+                kwargs={"token": str(token.token)},
             )
         )
         send_mail(
@@ -60,37 +68,57 @@ class VerifyEmailView(TemplateView):
 
     template_name = "users/email_verified.html"
 
-    def get(self, request, uidb64, token, *args, **kwargs):
+    def get(self, request, *args, **kwargs) -> TemplateResponse:
+        token = self.kwargs.get("token")
         try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
+            verification_token = EmailVerificationToken.objects.get(
+                token=token,
+            )
+            user = verification_token.user
+        except EmailVerificationToken.DoesNotExist:
+            return self.render_to_response(
+                {"error": "Недействительная ссылка"}
+            )
 
-        if user and default_token_generator.check_token(user, token):
-            user.is_active = True
-            user.save()
-            login(request, user)
-            return super().get(request, *args, **kwargs)
-        return self.render_to_response({"error": "Недействительная ссылка"})
+        if not verification_token.is_valid():
+            return self.render_to_response(
+                {"error": "Срок действия ссылки истёк"}
+            )
+
+        user.is_active = True
+        user.save()
+        verification_token.delete()  # Удаляем токен после использования
+        login(request, user)
+        return super().get(request, *args, **kwargs)
 
 
 class LoginView(BaseLoginView):
     """Вход пользователя."""
 
     template_name = "users/login.html"
-    success_url = reverse_lazy("mailings:home")
+    success_url = reverse_lazy("home")
 
 
-class ProfileView(LoginRequiredMixin, UpdateView):
-    """Редактирование профиля."""
+class ProfileDetailView(LoginRequiredMixin, DetailView):
+    """Просмотр профиля пользователя."""
+
+    model = User
+    template_name = "users/profile_detail.html"
+    context_object_name = "user_profile"
+
+    def get_object(self, queryset=None) -> User:
+        return self.request.user
+
+
+class ProfileEditView(LoginRequiredMixin, UpdateView):
+    """Редактирование профиля пользователя."""
 
     model = User
     form_class = UserChangeForm
-    template_name = "users/profile.html"
-    success_url = reverse_lazy("mailings:home")
+    template_name = "users/profile_edit.html"
+    success_url = reverse_lazy("home")
 
-    def get_object(self, queryset=None):
+    def get_object(self, queryset=None) -> User:
         return self.request.user
 
 
@@ -102,9 +130,44 @@ class PasswordResetView(BasePasswordResetView):
     html_email_template_name = "users/password_reset_email.html"
     success_url = reverse_lazy("users:password_reset_done")
 
+    def form_valid(self, form) -> HttpResponseRedirect:
+        email = form.cleaned_data["email"]
+
+        if not User.objects.filter(email=email).exists():
+            form.add_error("email", "Пользователь с таким email не найден")
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+
 
 class PasswordResetConfirmView(BasePasswordResetConfirmView):
     """Подтверждение сброса пароля."""
 
     template_name = "users/password_reset_confirm.html"
     success_url = reverse_lazy("users:login")
+
+    def form_valid(self, form) -> HttpResponseRedirect:
+        # Получаем пользователя из формы сброса
+        user = self.get_user(self.kwargs["uidb64"])
+        if not user:
+            return self.form_invalid(form)
+
+        new_password = form.cleaned_data["new_password1"]
+        if check_password(new_password, user.password):
+            form.add_error(
+                "new_password2",
+                "Новый пароль не может совпадать со старым",
+            )
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+
+    def get_user(self, uidb64) -> Optional[User]:
+        """Получает пользователя из uidb64."""
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return None
+
+        return user
