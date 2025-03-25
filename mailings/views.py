@@ -1,4 +1,7 @@
+from typing import Any
+
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -164,6 +167,22 @@ class MailingDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self) -> QuerySet:
         return Mailing.objects.for_user(self.request.user)
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        """Добавление пагинации для получателей в контекст."""
+        context = super().get_context_data(**kwargs)
+
+        paginator = Paginator(
+            self.object.recipients.all(),
+            DEFAULT_PAGE_SIZE,
+        )
+        page_number = self.request.GET.get("recipients_page")
+        recipients_page = paginator.get_page(page_number)
+
+        context["recipients_page"] = recipients_page
+        context["is_paginated"] = recipients_page.has_other_pages()
+
+        return context
 
     def post(self, request, *args, **kwargs) -> HttpResponseRedirect:
         """Обработка отправки рассылки."""
