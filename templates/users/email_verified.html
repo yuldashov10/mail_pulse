@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex justify-content-center align-items-center min-vh-60">
+    <div class="col-md-6 col-lg-4 p-4 bg-white rounded"
+         style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1)">
+      {% if error %}
+        <h1 class="text-center mb-4">Ошибка</h1>
+        <p class="text-center">{{ error }}</p>
+      {% else %}
+        <h1 class="text-center mb-4">Аккаунт подтверждён</h1>
+        <p class="text-center">Добро пожаловать! Теперь Вы можете перейти на главную.</p>
+        <div class="d-grid mb-3">
+          <a href="{% url 'home' %}"
+             class="btn btn-primary"
+             style="transition: background-color 0.3s"
+             onmouseover="this.style.backgroundColor='#0056b3'"
+             onmouseout="this.style.backgroundColor=''">На главную</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
