@@ -7,7 +7,7 @@ from django.core.management.utils import get_random_secret_key
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default=get_random_secret_key(), cast=str)
 DEBUG = config("DEBUG", default=False, cast=bool)
-print(f"----------> {DEBUG}")
+
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 DATABASES = {
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_bootstrap5",
     "users.apps.UsersConfig",
     "mailings.apps.MailingsConfig",
 ]
