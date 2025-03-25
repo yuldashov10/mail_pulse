@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+  <div class="container my-4">
+    <h1 class="text-center mb-4">{{ mailing.message.subject }}</h1>
+    <div class="card shadow-sm p-4">
+      <p>
+        <strong>Статус:</strong> {{ mailing.get_status_display }}
+      </p>
+      <p>
+        <strong>Начало:</strong> {{ mailing.start_time }}
+      </p>
+      <p>
+        <strong>Окончание:</strong> {{ mailing.end_time }}
+      </p>
+      <p>
+        <strong>Получатели:</strong>
+        <br>
+        {% for recipient in recipients_page %}
+          {{ recipient }}
+          <br>
+        {% empty %}
+          Нет получателей
+        {% endfor %}
+      </p>
+      {% if recipients_page.has_other_pages %}
+        {% include 'includes/pagination.html' with page=recipients_page page_param="recipients_page" %}
+      {% endif %}
+    </div>
+    <div class="d-flex justify-content-center gap-2 mt-4">
+      {% if mailing.status == 'created' %}
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          {% bootstrap_button "Отправить сейчас" button_type="submit" button_class="btn btn-success" style="transition: background-color 0.3s;" extra_attrs="onmouseover=\"this.style.backgroundColor='#218838'\" onmouseout=\"this.style.backgroundColor=''\"" %}
+        </form>
+      {% endif %}
+      {% if mailing.owner == user %}
+        <a href="{% url 'mailings:mailing_update' mailing.pk %}"
+           class="btn btn-warning"
+           style="transition: background-color 0.3s"
+           onmouseover="this.style.backgroundColor='#e0a800'"
+           onmouseout="this.style.backgroundColor=''">Редактировать</a>
+      {% endif %}
+      <a href="{% url 'mailings:mailing_list' %}"
+         class="btn btn-secondary"
+         style="transition: background-color 0.3s"
+         onmouseover="this.style.backgroundColor='#5a6268'"
+         onmouseout="this.style.backgroundColor=''">Назад</a>
+    </div>
+  </div>
+{% endblock %}

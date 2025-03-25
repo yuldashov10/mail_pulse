@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container my-4">
+    <h1 class="mb-4">Список сообщений</h1>
+    <a href="{% url 'mailings:message_create' %}"
+       class="btn btn-success mb-3"
+       style="transition: background-color 0.3s"
+       onmouseover="this.style.backgroundColor='#218838'"
+       onmouseout="this.style.backgroundColor=''">Добавить сообщение</a>
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Тема</th>
+            <th style="text-align: right;">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for message in messages %}
+            <tr>
+              <td>{{ message.subject }}</td>
+              <td style="text-align: right;">
+                <a href="{% url 'mailings:message_detail' message.pk %}"
+                   class="btn btn-info btn-sm"
+                   style="transition: background-color 0.3s"
+                   onmouseover="this.style.backgroundColor='#138496'"
+                   onmouseout="this.style.backgroundColor=''">Просмотр</a>
+                {% if message.owner == user %}
+                  <a href="{% url 'mailings:message_update' message.pk %}"
+                     class="btn btn-warning btn-sm"
+                     style="transition: background-color 0.3s"
+                     onmouseover="this.style.backgroundColor='#e0a800'"
+                     onmouseout="this.style.backgroundColor=''">Редактировать</a>
+                  <a href="{% url 'mailings:message_delete' message.pk %}"
+                     class="btn btn-danger btn-sm"
+                     style="transition: background-color 0.3s"
+                     onmouseover="this.style.backgroundColor='#c82333'"
+                     onmouseout="this.style.backgroundColor=''">Удалить</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2" class="text-center">Сообщений нет</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include 'includes/pagination.html' with page=page_obj page_param="page" %}
+  </div>
+{% endblock %}

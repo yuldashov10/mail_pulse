@@ -1,0 +1,77 @@
+{% if is_paginated %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page.has_previous %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?{{ page_param }}={{ page.previous_page_number }}"
+             style="transition: background-color 0.3s"
+             onmouseover="this.style.backgroundColor='#e9ecef'"
+             onmouseout="this.style.backgroundColor=''">Предыдущая</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Предыдущая</span>
+        </li>
+      {% endif %}
+      {% if page.number > 3 %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?{{ page_param }}=1"
+             style="transition: background-color 0.3s"
+             onmouseover="this.style.backgroundColor='#e9ecef'"
+             onmouseout="this.style.backgroundColor=''">1</a>
+        </li>
+        {% if page.number > 4 %}
+          <li class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+        {% endif %}
+      {% endif %}
+      {% for num in page.paginator.page_range %}
+        {% if num >= page.number|add:-2 and num <= page.number|add:2 %}
+          {% if page.number == num %}
+            <li class="page-item active">
+              <span class="page-link">{{ num }}</span>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?{{ page_param }}={{ num }}"
+                 style="transition: background-color 0.3s"
+                 onmouseover="this.style.backgroundColor='#e9ecef'"
+                 onmouseout="this.style.backgroundColor=''">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if page.number < page.paginator.num_pages|add:-2 %}
+        {% if page.number < page.paginator.num_pages|add:-3 %}
+          <li class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+        {% endif %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?{{ page_param }}={{ page.paginator.num_pages }}"
+             style="transition: background-color 0.3s"
+             onmouseover="this.style.backgroundColor='#e9ecef'"
+             onmouseout="this.style.backgroundColor=''">{{ page.paginator.num_pages }}</a>
+        </li>
+      {% endif %}
+      {% if page.has_next %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?{{ page_param }}={{ page.next_page_number }}"
+             style="transition: background-color 0.3s"
+             onmouseover="this.style.backgroundColor='#e9ecef'"
+             onmouseout="this.style.backgroundColor=''">Следующая</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Следующая</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container my-4">
+    <h1 class="text-center mb-4">{{ recipient.full_name }}</h1>
+    <div class="card shadow-sm p-4">
+      <p>
+        <strong>Email:</strong> {{ recipient.email }}
+      </p>
+      <p>
+        <strong>Комментарий:</strong> {{ recipient.comment|default:"—" }}
+      </p>
+    </div>
+    <div class="d-flex justify-content-center gap-2 mt-4">
+      {% if recipient.owner == user %}
+        <a href="{% url 'mailings:recipient_update' recipient.pk %}"
+           class="btn btn-warning"
+           style="transition: background-color 0.3s"
+           onmouseover="this.style.backgroundColor='#e0a800'"
+           onmouseout="this.style.backgroundColor=''">Редактировать</a>
+      {% endif %}
+      <a href="{% url 'mailings:recipient_list' %}"
+         class="btn btn-secondary"
+         style="transition: background-color 0.3s"
+         onmouseover="this.style.backgroundColor='#5a6268'"
+         onmouseout="this.style.backgroundColor=''">Назад</a>
+    </div>
+  </div>
+{% endblock %}

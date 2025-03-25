@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container my-4">
+    <h1 class="mb-4">Список попыток рассылки</h1>
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Рассылка</th>
+            <th>Статус</th>
+            <th>Время попытки</th>
+            <th style="text-align: right;">Ответ сервера</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attempt in attempts %}
+            <tr>
+              <td>{{ attempt.mailing.message.subject }}</td>
+              <td>{{ attempt.get_status_display }}</td>
+              <td>{{ attempt.attempt_time }}</td>
+              <td style="text-align: right;">{{ attempt.server_response|default:"—" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center">Попыток нет</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex justify-content-center mt-3">
+      <a href="{% url 'mailings:mailing_list' %}"
+         class="btn btn-secondary"
+         style="transition: background-color 0.3s"
+         onmouseover="this.style.backgroundColor='#5a6268'"
+         onmouseout="this.style.backgroundColor=''">Назад</a>
+    </div>
+    {% include 'includes/pagination.html' with page=page_obj page_param="page" %}
+  </div>
+{% endblock %}

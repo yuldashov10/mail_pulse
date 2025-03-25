@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+  <div class="d-flex justify-content-center align-items-center min-vh-60">
+    <div class="col-md-6 col-lg-4 p-4 bg-white rounded"
+         style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1)">
+      <h1 class="text-center mb-4">
+        {% if object %}
+          Редактировать получателя
+        {% else %}
+          Добавить получателя
+        {% endif %}
+      </h1>
+      <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <div class="d-grid mb-3">
+          {% bootstrap_button "Сохранить" button_type="submit" button_class="btn-primary" style="transition: background-color 0.3s;" extra_attrs="onmouseover=\"this.style.backgroundColor='#0056b3'\" onmouseout=\"this.style.backgroundColor=''\"" %}
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
