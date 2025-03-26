@@ -65,4 +65,9 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
+    path(
+        "block/<int:pk>/",
+        views.BlockUserView.as_view(),
+        name="block_user",
+    ),
 ]

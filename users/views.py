@@ -11,12 +11,15 @@ from django.contrib.auth.views import (
 from django.contrib.auth.views import (
     PasswordResetView as BasePasswordResetView,
 )
+from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
-from django.http import HttpResponseRedirect
+from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.views import View
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -26,6 +29,7 @@ from django.views.generic import (
 
 from users.forms import RegistrationForm, UserChangeForm
 from users.models import EmailVerificationToken, User
+from utils.users import is_manager
 
 
 class RegisterView(CreateView):
@@ -171,3 +175,25 @@ class PasswordResetConfirmView(BasePasswordResetConfirmView):
             return None
 
         return user
+
+
+class BlockUserView(LoginRequiredMixin, View):
+    def post(
+        self,
+        request,
+        pk,
+    ) -> HttpResponsePermanentRedirect | HttpResponseRedirect:
+        if not is_manager(request.user):
+            raise PermissionDenied(
+                "Только менеджеры могут блокировать пользователей",
+            )
+
+        user = get_object_or_404(User, pk=pk)
+        if user == request.user:
+            raise PermissionDenied(
+                "Нельзя заблокировать самого себя",
+            )
+
+        user.is_blocked = True
+        user.save()
+        return redirect(reverse_lazy("mailings:mailing_list"))

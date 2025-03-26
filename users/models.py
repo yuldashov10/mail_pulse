@@ -22,6 +22,7 @@ class User(AbstractUser):
         unique=True,
     )
     avatar = models.ImageField(
+        "Фото профиля",
         upload_to="avatars/",
         null=True,
         blank=True,
@@ -38,6 +39,10 @@ class User(AbstractUser):
     )
     is_active = models.BooleanField(
         "Активен",
+        default=False,
+    )
+    is_blocked = models.BooleanField(
+        "Заблокирован",
         default=False,
     )
 
