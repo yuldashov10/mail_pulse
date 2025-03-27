@@ -4,8 +4,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import QuerySet
-from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect
+from django.http import (
+    HttpResponse,
+    HttpResponsePermanentRedirect,
+    HttpResponseRedirect,
+)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import (
@@ -301,18 +305,35 @@ class MailingAttemptListView(LoginRequiredMixin, ListView):
 
 
 class DisableMailingView(LoginRequiredMixin, View):
+    """Блокировка рассылки."""
+
+    template_name = "mailings/mailing_disable_confirm.html"
+
+    def __is_manager(self, user) -> None:
+        if not is_manager(user):
+            raise PermissionDenied("Только менеджеры могут отключать рассылки")
+
+    def get(
+        self,
+        request,
+        pk,
+    ) -> HttpResponsePermanentRedirect | HttpResponseRedirect | HttpResponse:
+        self.__is_manager(request.user)
+
+        mailing = get_object_or_404(Mailing, pk=pk)
+        if mailing.status == MailingStatus.DISABLED:
+            return redirect(reverse_lazy("mailings:mailing_list"))
+
+        return render(request, self.template_name, {"mailing": mailing})
+
     def post(
         self,
         request,
         pk,
     ) -> HttpResponsePermanentRedirect | HttpResponseRedirect:
-        if not is_manager(request.user):
-            raise PermissionDenied(
-                "Только менеджеры могут отключать рассылки",
-            )
+        self.__is_manager(request.user)
 
         mailing = get_object_or_404(Mailing, pk=pk)
-
         mailing.status = MailingStatus.DISABLED
         mailing.save()
 
