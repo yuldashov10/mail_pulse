@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container my-4">
+    <h1 class="text-center mb-4">Отключение рассылки</h1>
+    <div class="card shadow-sm p-4">
+      <p>Вы уверены, что хотите отключить рассылку "{{ mailing.message.subject }}"?</p>
+      <form method="post"
+            action="{% url 'mailings:mailing_disable' mailing.pk %}">
+        {% csrf_token %}
+        <div class="d-flex justify-content-center gap-2">
+          <button type="submit"
+                  class="btn btn-danger"
+                  style="transition: background-color 0.3s"
+                  onmouseover="this.style.backgroundColor='#c82333'"
+                  onmouseout="this.style.backgroundColor=''">Да, отключить</button>
+          <a href="{% url 'mailings:mailing_list' %}"
+             class="btn btn-secondary"
+             style="transition: background-color 0.3s"
+             onmouseover="this.style.backgroundColor='#5a6268'"
+             onmouseout="this.style.backgroundColor=''">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

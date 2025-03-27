@@ -38,16 +38,11 @@
                      onmouseout="this.style.backgroundColor=''">Удалить</a>
                 {% endif %}
                 {% if is_manager and not message.owner.is_blocked %}
-                  <form method="post"
-                        action="{% url 'users:block_user' message.owner.pk %}"
-                        style="display:inline">
-                    {% csrf_token %}
-                    <button type="submit"
-                            class="btn btn-danger btn-sm"
-                            style="transition: background-color 0.3s"
-                            onmouseover="this.style.backgroundColor='#c82333'"
-                            onmouseout="this.style.backgroundColor=''">Заблокировать</button>
-                  </form>
+                  <a href="{% url 'users:user_block' message.owner.pk %}"
+                     class="btn btn-danger btn-sm"
+                     style="transition: background-color 0.3s"
+                     onmouseover="this.style.backgroundColor='#c82333'"
+                     onmouseout="this.style.backgroundColor=''">Заблокировать</a>
                 {% endif %}
               </td>
             </tr>
