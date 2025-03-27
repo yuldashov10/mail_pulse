@@ -18,6 +18,7 @@ class MailingStatus(TextChoices):
     CREATED = ("created", "Создана")
     RUNNING = ("running", "Запущена")
     COMPLETED = ("completed", "Завершена")
+    DISABLED = ("disabled", "Отключена")
 
 
 class AttemptStatus(TextChoices):

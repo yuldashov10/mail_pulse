@@ -1,10 +1,13 @@
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import QuerySet
-from django.http import HttpResponseRedirect
+from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
+from django.views import View
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -16,6 +19,7 @@ from django.views.generic import (
 from mailings.constants import DEFAULT_PAGE_SIZE, MailingStatus
 from mailings.forms import MailingForm
 from mailings.models import Mailing, MailingAttempt, Message, Recipient
+from utils import is_manager
 
 
 class RecipientListView(LoginRequiredMixin, ListView):
@@ -28,6 +32,13 @@ class RecipientListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet:
         return Recipient.objects.for_user(self.request.user)
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context["is_manager"] = is_manager(self.request.user)
+
+        return context
 
 
 class RecipientDetailView(LoginRequiredMixin, DetailView):
@@ -90,8 +101,15 @@ class MessageListView(LoginRequiredMixin, ListView):
     context_object_name = "messages"
     paginate_by = DEFAULT_PAGE_SIZE
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return Message.objects.for_user(self.request.user)
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context["is_manager"] = is_manager(self.request.user)
+
+        return context
 
 
 class MessageDetailView(LoginRequiredMixin, DetailView):
@@ -154,8 +172,15 @@ class MailingListView(LoginRequiredMixin, ListView):
     context_object_name = "mailings"
     paginate_by = DEFAULT_PAGE_SIZE
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return Mailing.objects.for_user(self.request.user)
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context["is_manager"] = is_manager(self.request.user)
+
+        return context
 
 
 class MailingDetailView(LoginRequiredMixin, DetailView):
@@ -181,6 +206,7 @@ class MailingDetailView(LoginRequiredMixin, DetailView):
 
         context["recipients_page"] = recipients_page
         context["is_paginated"] = recipients_page.has_other_pages()
+        context["is_manager"] = is_manager(self.request.user)
 
         return context
 
@@ -272,3 +298,22 @@ class MailingAttemptListView(LoginRequiredMixin, ListView):
         return MailingAttempt.objects.filter(
             mailing__owner=self.request.user,
         )
+
+
+class DisableMailingView(LoginRequiredMixin, View):
+    def post(
+        self,
+        request,
+        pk,
+    ) -> HttpResponsePermanentRedirect | HttpResponseRedirect:
+        if not is_manager(request.user):
+            raise PermissionDenied(
+                "Только менеджеры могут отключать рассылки",
+            )
+
+        mailing = get_object_or_404(Mailing, pk=pk)
+
+        mailing.status = MailingStatus.DISABLED
+        mailing.save()
+
+        return redirect(reverse_lazy("mailings:mailing_list"))

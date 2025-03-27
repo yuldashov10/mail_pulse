@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models import QuerySet
+from django.utils import timezone
 
 from mailings.constants import (
     EMAIL_LEN,
@@ -126,6 +128,7 @@ class Mailing(models.Model):
     recipients = models.ManyToManyField(
         Recipient,
         verbose_name="Получатели",
+        related_name="mailings",
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -144,29 +147,99 @@ class Mailing(models.Model):
             ("can_block_mailings", "Может отключать рассылки"),
         )
 
-    def send_mailing(self):
-        """Отправляет рассылки всем получателям."""
-        try:
-            send_mail(
-                self.message.subject,
-                self.message.body,
-                settings.EMAIL_HOST_USER,
-                [recipient.email for recipient in self.recipients.all()],
-                fail_silently=False,
+    def _log_attempt(self, status: str, server_response: str) -> None:
+        """Создаёт запись о попытке отправки."""
+        MailingAttempt.objects.create(
+            mailing=self,
+            status=status,
+            server_response=server_response,
+        )
+
+    def _set_running_status(self) -> None:
+        """Устанавливает статус 'Запущена' перед отправкой."""
+        self.status = MailingStatus.RUNNING
+        self.save()
+
+    def _can_send(self) -> bool:
+        """Проверяет, можно ли отправить рассылку."""
+        now = timezone.now()
+
+        if self.owner.is_blocked:
+            self._log_attempt(
+                AttemptStatus.FAILED,
+                "Владелец рассылки заблокирован",
             )
-            MailingAttempt.objects.create(
-                mailing=self,
-                status=AttemptStatus.SUCCESS,
-                server_response="Сообщение успешно отправлено",
+            return False
+
+        if self.status == MailingStatus.DISABLED:
+            self._log_attempt(
+                AttemptStatus.FAILED,
+                "Рассылка отключена менеджером",
             )
+            return False
+
+        if self.start_time > now:
+            self._log_attempt(
+                AttemptStatus.FAILED,
+                "Рассылка ещё не началась",
+            )
+            return False
+
+        if self.end_time and self.end_time < now:
+            self._log_attempt(
+                AttemptStatus.FAILED,
+                "Срок действия рассылки истёк",
+            )
+            return False
+
+        return True
+
+    def _send_to_recipients(self) -> bool:
+        """Отправляет письма каждому получателю и возвращает True, если все успешно."""
+        recipients: QuerySet = self.recipients.all()
+        all_success: bool = True
+
+        for recipient in recipients:
+            try:
+                send_mail(
+                    subject=self.message.subject,
+                    message=self.message.body,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[recipient.email],
+                    fail_silently=False,
+                )
+                self._log_attempt(
+                    AttemptStatus.SUCCESS,
+                    "Сообщение успешно отправлено",
+                )
+            except Exception as err_msg:
+                self._log_attempt(
+                    AttemptStatus.FAILED,
+                    "Ошибка отправки",
+                )
+                all_success = False
+
+        return all_success
+
+    def _update_final_status(self, all_success: bool) -> None:
+        """Обновляет финальный статус рассылки."""
+        if not all_success:
+            self.status = MailingStatus.RUNNING
+        else:
             self.status = MailingStatus.COMPLETED
-            self.save()
-        except Exception as err_msg:
-            MailingAttempt.objects.create(
-                mailing=self,
-                status=AttemptStatus.FAILED,
-                server_response=str(err_msg),
-            )
+        self.save()
+
+    def send_mailing(self) -> None:
+        """
+        Отправляет рассылки всем получателям с учётом статуса и блокировки.
+        """
+        if not self._can_send():
+            return
+
+        self._set_running_status()
+        all_success = self._send_to_recipients()
+
+        self._update_final_status(all_success)
 
     def __str__(self) -> str:
         return f"{self.message.subject} ({self.status})"

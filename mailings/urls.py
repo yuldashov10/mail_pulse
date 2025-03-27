@@ -86,6 +86,11 @@ mailings_urls = [
         views.MailingDeleteView.as_view(),
         name="mailing_delete",
     ),
+    path(
+        "<int:pk>/disable/",
+        views.DisableMailingView.as_view(),
+        name="mailing_disable",
+    ),
 ]
 
 attempts_urls = [

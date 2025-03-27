@@ -1,17 +1,20 @@
+from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    """Настраивает группу 'Менеджеры' с необходимыми разрешениями."""
+    """Настраивает группу менеджеров с необходимыми разрешениями."""
 
     help = (
-        "Создаёт группу 'Менеджеры' и назначает "
+        f"Создаёт группу '{settings.NAME_MANAGERS_GROUP}' и назначает "
         "ей разрешения для управления рассылками."
     )
 
     def handle(self, *args, **options) -> None:
-        group, created = Group.objects.get_or_create(name="Менеджеры")
+        group, created = Group.objects.get_or_create(
+            name=settings.NAME_MANAGERS_GROUP
+        )
         permission_codenames: tuple[str, ...] = (
             "can_view_all_recipients",
             "can_view_all_messages",
@@ -35,5 +38,7 @@ class Command(BaseCommand):
         action: str = "создана и настроена" if created else "обновлена"
 
         self.stdout.write(
-            self.style.SUCCESS(f"Группа 'Менеджеры' успешно {action}")
+            self.style.SUCCESS(
+                f"Группа '{settings.NAME_MANAGERS_GROUP}' успешно {action}"
+            )
         )

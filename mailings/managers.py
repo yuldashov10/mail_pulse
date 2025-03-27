@@ -1,28 +1,27 @@
+from django.conf import settings
 from django.db import models
 
 
-class RecipientManager(models.Manager):
+class BaseManager(models.Manager):
+    def for_user(self, user) -> models.QuerySet:
+        if user.groups.filter(name=settings.NAME_MANAGERS_GROUP).exists():
+            return self.all()
+        return self.filter(owner=user)
+
+
+class RecipientManager(BaseManager):
     """Менеджер получателя рассылки."""
 
-    def for_user(self, user) -> models.QuerySet:
-        if user.has_perm("mailings.can_view_all_recipients"):
-            return self.all()
-        return self.filter(owner=user)
+    pass
 
 
-class MessageManager(models.Manager):
+class MessageManager(BaseManager):
     """Менеджер сообщения для рассылки."""
 
-    def for_user(self, user) -> models.QuerySet:
-        if user.has_perm("mailings.can_view_all_messages"):
-            return self.all()
-        return self.filter(owner=user)
+    pass
 
 
-class MailingManager(models.Manager):
+class MailingManager(BaseManager):
     """Менеджер рассылки."""
 
-    def for_user(self, user) -> models.QuerySet:
-        if user.has_perm("mailings.can_view_all_mailings"):
-            return self.all()
-        return self.filter(owner=user)
+    pass

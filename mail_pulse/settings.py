@@ -121,4 +121,4 @@ LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-GROUP_MANAGERS_NAME: str = "Менеджеры"
+NAME_MANAGERS_GROUP: str = "Менеджеры"
