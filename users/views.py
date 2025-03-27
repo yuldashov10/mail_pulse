@@ -13,8 +13,12 @@ from django.contrib.auth.views import (
 )
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
-from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect
+from django.http import (
+    HttpResponse,
+    HttpResponsePermanentRedirect,
+    HttpResponseRedirect,
+)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.utils.encoding import force_str
@@ -178,22 +182,46 @@ class PasswordResetConfirmView(BasePasswordResetConfirmView):
 
 
 class BlockUserView(LoginRequiredMixin, View):
+    """Блокировка пользователя."""
+
+    template_name = "users/block_user_confirm.html"
+
+    def __is_manager(self, user):
+        if not is_manager(user):
+            raise PermissionDenied(
+                "Только менеджеры могут блокировать пользователей"
+            )
+
+    def __is_not_self(self, user_to_block, curr_user):
+        if user_to_block == curr_user:
+            raise PermissionDenied("Нельзя заблокировать самого себя")
+
+    def get(
+        self,
+        request,
+        pk,
+    ) -> HttpResponsePermanentRedirect | HttpResponseRedirect | HttpResponse:
+        self.__is_manager(request.user)
+
+        user = get_object_or_404(User, pk=pk)
+        self.__is_not_self(user, request.user)
+
+        if user.is_blocked:
+            return redirect(reverse_lazy("mailings:mailing_list"))
+
+        return render(request, self.template_name, {"user_to_block": user})
+
     def post(
         self,
         request,
         pk,
     ) -> HttpResponsePermanentRedirect | HttpResponseRedirect:
-        if not is_manager(request.user):
-            raise PermissionDenied(
-                "Только менеджеры могут блокировать пользователей",
-            )
+        self.__is_manager(request.user)
 
         user = get_object_or_404(User, pk=pk)
-        if user == request.user:
-            raise PermissionDenied(
-                "Нельзя заблокировать самого себя",
-            )
+        self.__is_not_self(user, request.user)
 
         user.is_blocked = True
         user.save()
+
         return redirect(reverse_lazy("mailings:mailing_list"))
