@@ -14,6 +14,9 @@
         <strong>Окончание:</strong> {{ mailing.end_time }}
       </p>
       <p>
+        <strong>Отправитель:</strong> @{{ mailing.owner.username }}
+      </p>
+      <p>
         <strong>Получатели:</strong>
         <br>
         {% for recipient in recipients_page %}
@@ -40,6 +43,18 @@
            style="transition: background-color 0.3s"
            onmouseover="this.style.backgroundColor='#e0a800'"
            onmouseout="this.style.backgroundColor=''">Редактировать</a>
+      {% endif %}
+      {% if is_manager and mailing.status != 'disabled' %}
+        <form method="post"
+              action="{% url 'mailings:disable_mailing' mailing.pk %}"
+              style="display:inline">
+          {% csrf_token %}
+          <button type="submit"
+                  class="btn btn-secondary"
+                  style="transition: background-color 0.3s"
+                  onmouseover="this.style.backgroundColor='#5a6268'"
+                  onmouseout="this.style.backgroundColor=''">Отключить</button>
+        </form>
       {% endif %}
       <a href="{% url 'mailings:mailing_list' %}"
          class="btn btn-secondary"

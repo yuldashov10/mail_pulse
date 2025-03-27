@@ -43,6 +43,18 @@
                      onmouseover="this.style.backgroundColor='#c82333'"
                      onmouseout="this.style.backgroundColor=''">Удалить</a>
                 {% endif %}
+                {% if is_manager and mailing.status != 'disabled' %}
+                  <form method="post"
+                        action="{% url 'mailings:disable_mailing' mailing.pk %}"
+                        style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-secondary btn-sm"
+                            style="transition: background-color 0.3s"
+                            onmouseover="this.style.backgroundColor='#5a6268'"
+                            onmouseout="this.style.backgroundColor=''">Отключить</button>
+                  </form>
+                {% endif %}
               </td>
             </tr>
           {% empty %}
