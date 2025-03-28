@@ -33,3 +33,16 @@ python3 manage.py setup_managers_group
 ```bash
 python3 manage.py send_mailing <mailing_id>
 ```
+
+---
+
+# Тесты
+
+Запуск тестов для `users`:
+
+> Важно: Для тестов `EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'`
+
+```bash
+pytest tests/users/ --cov=users --cov-report=html --cov-report=term-missing
+```
+
