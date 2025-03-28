@@ -59,11 +59,12 @@ class EmailVerificationToken(models.Model):
     """Модель для токенов подтверждения email."""
 
     user = models.ForeignKey(
-        "User",
+        User,
         on_delete=models.CASCADE,
         verbose_name="Пользователь",
     )
     token = models.UUIDField(
+        "Токен активации",
         default=uuid.uuid4,
         editable=False,
         unique=True,

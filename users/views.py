@@ -62,6 +62,7 @@ class RegisterView(CreateView):
             [user.email],
             fail_silently=False,
         )
+
         return super().form_valid(form)
 
 
@@ -77,10 +78,9 @@ class VerifyEmailView(TemplateView):
     template_name = "users/email_verified.html"
 
     def get(self, request, *args, **kwargs) -> TemplateResponse:
-        token = self.kwargs.get("token")
         try:
             verification_token = EmailVerificationToken.objects.get(
-                token=token,
+                token=self.kwargs.get("token"),
             )
             user = verification_token.user
         except EmailVerificationToken.DoesNotExist:
@@ -95,8 +95,9 @@ class VerifyEmailView(TemplateView):
 
         user.is_active = True
         user.save()
-        verification_token.delete()  # Удаляем токен после использования
+        verification_token.delete()
         login(request, user)
+
         return super().get(request, *args, **kwargs)
 
 
@@ -142,7 +143,7 @@ class PasswordResetView(BasePasswordResetView):
         email = form.cleaned_data["email"]
 
         if not User.objects.filter(email=email).exists():
-            form.add_error("email", "Пользователь с таким email не найден")
+            form.add_error("email", f"Пользователь с таким {email} не найден")
             return self.form_invalid(form)
 
         return super().form_valid(form)
@@ -154,9 +155,19 @@ class PasswordResetConfirmView(BasePasswordResetConfirmView):
     template_name = "users/password_reset_confirm.html"
     success_url = reverse_lazy("users:login")
 
+    def get_user(self, uidb64) -> Optional[User]:
+        """Получает пользователя из uidb64."""
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return None
+
+        return user
+
     def form_valid(self, form) -> HttpResponseRedirect:
-        # Получаем пользователя из формы сброса
         user = self.get_user(self.kwargs["uidb64"])
+
         if not user:
             return self.form_invalid(form)
 
@@ -169,16 +180,6 @@ class PasswordResetConfirmView(BasePasswordResetConfirmView):
             return self.form_invalid(form)
 
         return super().form_valid(form)
-
-    def get_user(self, uidb64) -> Optional[User]:
-        """Получает пользователя из uidb64."""
-        try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return None
-
-        return user
 
 
 class BlockUserView(LoginRequiredMixin, View):
@@ -224,4 +225,8 @@ class BlockUserView(LoginRequiredMixin, View):
         user.is_blocked = True
         user.save()
 
-        return redirect(reverse_lazy("mailings:mailing_list"))
+        return redirect(
+            request.META.get(
+                "HTTP_REFERER", reverse_lazy("mailings:mailing_list")
+            )
+        )
