@@ -114,3 +114,8 @@ disable_error_code = ["import-untyped"]
 [[tool.mypy.overrides]]
 module = ["untyped_package.*"]
 follow_untyped_imports = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "mail_pulse.settings"
+python_files = ["test_*.py"]
+addopts = "--cov=users --cov-report=html --cov-report=term-missing"
