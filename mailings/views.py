@@ -337,4 +337,8 @@ class DisableMailingView(LoginRequiredMixin, View):
         mailing.status = MailingStatus.DISABLED
         mailing.save()
 
-        return redirect(reverse_lazy("mailings:mailing_list"))
+        return redirect(
+            request.META.get(
+                "HTTP_REFERER", reverse_lazy("mailings:mailing_list")
+            )
+        )

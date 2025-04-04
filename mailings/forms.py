@@ -21,7 +21,7 @@ class MailingForm(forms.ModelForm):
 
     def clean_start_time(self):
         start_time = self.cleaned_data["start_time"]
-        if start_time < timezone.now():
+        if start_time < (timezone.now() - timezone.timedelta(seconds=5)):
             raise forms.ValidationError(
                 "Дата и время первой отправки не могут быть в прошлом",
             )
@@ -32,7 +32,7 @@ class MailingForm(forms.ModelForm):
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
 
-        if start_time and end_time and end_time <= start_time:
+        if start_time and end_time and end_time < start_time:
             raise forms.ValidationError(
                 "Дата окончания должна быть позже даты начала",
             )

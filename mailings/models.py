@@ -195,7 +195,11 @@ class Mailing(models.Model):
         return True
 
     def _send_to_recipients(self) -> bool:
-        """Отправляет письма каждому получателю и возвращает True, если все успешно."""
+        """
+        Отправляет письма каждому получателю.
+
+        Если все успешно, возвращает True, иначе False.
+        """
         recipients: QuerySet = self.recipients.all()
         all_success: bool = True
 
@@ -212,7 +216,7 @@ class Mailing(models.Model):
                     AttemptStatus.SUCCESS,
                     "Сообщение успешно отправлено",
                 )
-            except Exception as err_msg:
+            except Exception as err_msg:  # noqa: skip
                 self._log_attempt(
                     AttemptStatus.FAILED,
                     "Ошибка отправки",
