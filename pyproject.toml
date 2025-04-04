@@ -22,11 +22,12 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
-flake8 = "^7.1.2"
-isort = "^6.0.1"
 black = "^25.1.0"
-mypy = "^1.15.0"
+isort = "^6.0.1"
+flake8 = "^7.1.2"
 flake8-pyproject = "^1.2.3"
+mypy = "^1.15.0"
+pylint = "^3.2.6"
 tqdm = "^4.67.1"
 djlint = "^1.36.4"
 
@@ -44,7 +45,7 @@ max-line-length = 79
 max-complexity = 6
 count = true
 per-file-ignores = [
-    "__init__.py:F401",
+    "__init__.py:F401,403",
     "**/settings.py:E501"
 ]
 extend-ignore = [
@@ -118,4 +119,11 @@ follow_untyped_imports = true
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "mail_pulse.settings"
 python_files = ["test_*.py"]
-addopts = "--cov=users --cov-report=html --cov-report=term-missing"
+testpaths = ["tests"]
+addopts = """
+    --cov=users
+    --cov=mailings
+    --cov-report=html
+    --cov-report=term-missing
+"""
+norecursedirs = ["venv", ".venv", "__pycache__", "static", "media"]
