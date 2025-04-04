@@ -1,0 +1,14 @@
+[run]
+omit =
+    */migrations/*
+    */tests/*
+    manage.py
+    mail_pulse/wsgi.py
+    mail_pulse/asgi.py
+    mailings/apps.py
+    mailings/constants.py
+    mailings/admin.py
+    */management/*
+    users/apps.py
+    users/constants.py
+    users/admin.py
